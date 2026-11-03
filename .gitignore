@@ -1,0 +1,22 @@
+# build
+build/
+.gradle/
+target/
+*.class
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# runtime data / secrets
+.env
+data/
+*.log
+*.spool
+*.jsonl
+
+# personal study notes (not published)
+education/

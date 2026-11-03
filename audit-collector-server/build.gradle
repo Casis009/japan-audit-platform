@@ -1,0 +1,11 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    runtimeOnly 'org.postgresql:postgresql:42.7.4'
+}
+
+application {
+    mainClass = 'com.audit.collector.web.CollectorServer'
+}

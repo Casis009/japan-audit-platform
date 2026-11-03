@@ -1,0 +1,11 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':audit-sensor')
+}
+
+application {
+    mainClass = 'com.audit.demo.DemoBusinessApplication'
+}

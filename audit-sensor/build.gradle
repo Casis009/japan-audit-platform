@@ -1,0 +1,9 @@
+// 業務アプリに組み込む監査フィルター
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':audit-core-rule')
+    api project(':servlet-api-lite')
+}

@@ -1,0 +1,57 @@
+# 使い方: cp .env.example .env （値を変更） → docker compose up -d --build
+services:
+  audit-db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_DB: auditdb
+      POSTGRES_USER: audit_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - audit-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audit_user -d auditdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  audit-collector:
+    build:
+      context: .
+      dockerfile: audit-collector-server/Dockerfile
+    depends_on:
+      audit-db:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: audit-db
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SENSOR_KEY: ${SENSOR_KEY:?set SENSOR_KEY in .env}
+      CONSOLE_USER: ${CONSOLE_USER:-auditor}
+      CONSOLE_PASSWORD: ${CONSOLE_PASSWORD:?set CONSOLE_PASSWORD in .env}
+    volumes:
+      - collector-anchors:/data
+
+  business-app:
+    build:
+      context: .
+      dockerfile: sample-business-app/Dockerfile
+    depends_on:
+      - audit-collector
+    ports:
+      - "8080:8080"
+    environment:
+      AUDIT_SYSTEM_CODE: SYS_DEMO_CUSTOMER
+      COLLECTOR_URL: http://audit-collector:8081/api/v1/collector/ingest
+      SENSOR_KEY: ${SENSOR_KEY}
+      AUDIT_RESEND_INTERVAL_MS: "5000"
+    volumes:
+      - was-spool:/spool
+
+volumes:
+  audit-db-data:
+  collector-anchors:
+  was-spool:
